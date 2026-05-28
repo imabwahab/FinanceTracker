@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using App.Core.Enums;
+﻿using App.Core.Enums;
 using App.Core.Models;
 using Microsoft.Data.SqlClient;
 
@@ -80,36 +78,54 @@ namespace App.Core.Services
 
         // -------------------------------------------------------------
         // Add: generates an Id, inserts, returns the saved object.
+        // Retries up to 5 times on duplicate key errors (extremely rare).
         // -------------------------------------------------------------
         public Account Add(Account account)
         {
             if (account == null)
                 throw new ArgumentNullException(nameof(account));
 
-            // Generate a short readable Id in C# (no IDENTITY column in the DB).
-            account.Id = "A-" + Guid.NewGuid().ToString("N");
-            account.CreatedAt = DateTime.UtcNow;
+            const int maxAttempts = 5;
+            SqlException? lastDuplicateKeyException = null;
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
-                conn.Open();
+                account.Id = GenerateAccountId();
+                account.CreatedAt = DateTime.UtcNow;
 
-                SqlCommand cmd = new SqlCommand(
-                    "INSERT INTO Accounts (Id, Name, AccountType, OpeningBalance, Currency, Status, CreatedAt) " +
-                    "VALUES (@Id, @Name, @AccountType, @OpeningBalance, @Currency, @Status, @CreatedAt)", conn);
+                try
+                {
+                    using (SqlConnection conn = new SqlConnection(_connectionString))
+                    {
+                        conn.Open();
 
-                cmd.Parameters.AddWithValue("@Id", account.Id);
-                cmd.Parameters.AddWithValue("@Name", account.Name);
-                cmd.Parameters.AddWithValue("@AccountType", account.AccountType.ToString());
-                cmd.Parameters.AddWithValue("@OpeningBalance", account.OpeningBalance);
-                cmd.Parameters.AddWithValue("@Currency", account.Currency ?? "PKR");
-                cmd.Parameters.AddWithValue("@Status", account.AccountStatus.ToString());
-                cmd.Parameters.AddWithValue("@CreatedAt", account.CreatedAt);
+                        SqlCommand cmd = new SqlCommand(
+                            "INSERT INTO Accounts (Id, Name, AccountType, OpeningBalance, Currency, Status, CreatedAt) " +
+                            "VALUES (@Id, @Name, @AccountType, @OpeningBalance, @Currency, @Status, @CreatedAt)", conn);
 
-                cmd.ExecuteNonQuery();
+                        cmd.Parameters.AddWithValue("@Id", account.Id);
+                        cmd.Parameters.AddWithValue("@Name", account.Name);
+                        cmd.Parameters.AddWithValue("@AccountType", account.AccountType.ToString());
+                        cmd.Parameters.AddWithValue("@OpeningBalance", account.OpeningBalance);
+                        cmd.Parameters.AddWithValue("@Currency", account.Currency ?? "PKR");
+                        cmd.Parameters.AddWithValue("@Status", account.AccountStatus.ToString());
+                        cmd.Parameters.AddWithValue("@CreatedAt", account.CreatedAt);
+
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    return account;
+                }
+                catch (SqlException ex) when (IsDuplicateKeyException(ex))
+                {
+                    lastDuplicateKeyException = ex;
+                    // Loop continues to retry with a new ID
+                }
             }
 
-            return account;
+            throw new InvalidOperationException(
+                "Unable to generate a unique account ID after multiple attempts.",
+                lastDuplicateKeyException);
         }
 
         // -------------------------------------------------------------
@@ -140,8 +156,6 @@ namespace App.Core.Services
                 cmd.Parameters.AddWithValue("@Currency", account.Currency ?? "PKR");
                 cmd.Parameters.AddWithValue("@Status", account.AccountStatus.ToString());
 
-                // ExecuteNonQuery returns rows affected.
-                // 0 means the WHERE clause matched nothing - the Id did not exist.
                 return cmd.ExecuteNonQuery() > 0;
             }
         }
@@ -164,9 +178,7 @@ namespace App.Core.Services
         }
 
         // -------------------------------------------------------------
-        // Search: text + optional filters. This is the dynamic SQL pattern
-        // from the Lec 16 handout - build the WHERE clause based on which
-        // filters are actually provided.
+        // Search: text + optional filters with LIKE wildcard escaping.
         // -------------------------------------------------------------
         public List<Account> Search(string text, AccountTypeEnum? type, AccountStatusEnum? status)
         {
@@ -208,11 +220,19 @@ namespace App.Core.Services
         }
 
         // =============================================================
-        // PRIVATE HELPER
+        // PRIVATE HELPERS
         // =============================================================
-        // MapRow builds one Account object from the current row of the reader.
-        // Called by GetAll, GetById, and Search - write it once, fix bugs once.
-        // This is the DRY principle in action.
+        private static string GenerateAccountId()
+        {
+            return "A-" + Guid.NewGuid().ToString("N");
+        }
+
+        private static bool IsDuplicateKeyException(SqlException ex)
+        {
+            // SQL Server error codes: 2627 = PK violation, 2601 = unique constraint
+            return ex.Number == 2627 || ex.Number == 2601;
+        }
+
         private Account MapRow(SqlDataReader reader)
         {
             return new Account
