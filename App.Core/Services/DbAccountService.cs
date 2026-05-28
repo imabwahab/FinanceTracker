@@ -87,7 +87,7 @@ namespace App.Core.Services
                 throw new ArgumentNullException(nameof(account));
 
             // Generate a short readable Id in C# (no IDENTITY column in the DB).
-            account.Id = "A-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
+            account.Id = "A-" + Guid.NewGuid().ToString("N");
             account.CreatedAt = DateTime.UtcNow;
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -176,20 +176,20 @@ namespace App.Core.Services
             {
                 conn.Open();
 
-                // Always-present filter: name LIKE '%text%'
+                // Escape LIKE wildcards in user input
+                string escapedText = (text ?? "").Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+
                 string sql =
                     "SELECT Id, Name, AccountType, OpeningBalance, Currency, Status, CreatedAt " +
-                    "FROM Accounts WHERE Name LIKE @Text";
+                    "FROM Accounts WHERE Name LIKE @Text ESCAPE '\\'";
 
                 if (type != null) sql += " AND AccountType = @AccountType";
                 if (status != null) sql += " AND Status = @Status";
                 sql += " ORDER BY Name";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Text", "%" + (text ?? "") + "%");
+                cmd.Parameters.AddWithValue("@Text", "%" + escapedText + "%");
 
-                // Only add parameters that are actually referenced in the SQL string.
-                // Adding an unreferenced parameter would make SQL Server complain.
                 if (type != null)
                     cmd.Parameters.AddWithValue("@AccountType", type.Value.ToString());
                 if (status != null)
