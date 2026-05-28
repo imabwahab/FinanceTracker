@@ -1,5 +1,4 @@
-﻿using System;
-using App.Core.Enums;
+﻿using App.Core.Enums;
 
 namespace App.Core.Models
 {
