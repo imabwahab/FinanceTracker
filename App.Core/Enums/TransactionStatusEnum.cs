@@ -4,5 +4,5 @@ using System.Text;
 
 namespace App.Core.Enums
 {
-    public enum CategoryTypeEnum { Income, Expense }
+    public enum TransactionStatusEnum { Cleared, Pending }
 }

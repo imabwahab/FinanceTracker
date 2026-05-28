@@ -4,5 +4,5 @@ using System.Text;
 
 namespace App.Core.Enums
 {
-    public enum CategoryTypeEum { Active, Inactive }
+    public enum CategoryStatusEnum { Active, Inactive }
 }
