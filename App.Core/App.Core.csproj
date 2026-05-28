@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Enums\TransactionStatusEnum.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Enums\TransactionStatusEnum.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
   </ItemGroup>
 
