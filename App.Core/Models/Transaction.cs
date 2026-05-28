@@ -2,7 +2,7 @@
 
 namespace App.Core.Models
 {
-    internal class Transaction
+    public class Transaction
     {
         public required string Id { get; set; }
         public required string AccountId { get; set; }
