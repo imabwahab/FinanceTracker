@@ -7,7 +7,7 @@ namespace App.Core.Services
     public interface IAccountService
     {
         List<Account> GetAll();
-        Account GetById(string id);
+        Account? GetById(string id);
         Account Add(Account account);
         bool Update(Account account);
         bool Delete(string id);
