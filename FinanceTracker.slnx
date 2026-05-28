@@ -1,1 +1,4 @@
-<Solution />
+<Solution>
+  <Project Path="App.Core/App.Core.csproj" />
+  <Project Path="App.WindowsForm/App.WindowsForm.csproj" />
+</Solution>
