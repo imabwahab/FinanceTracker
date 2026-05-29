@@ -7,7 +7,7 @@ namespace App.Core.Services
     public interface ICategoryService
     {
         List<Category> GetAll();
-        Category GetById(string id);
+        Category? GetById(string id);
         Category Add(Category category);
         bool Update(Category category);
         bool Delete(string id);
