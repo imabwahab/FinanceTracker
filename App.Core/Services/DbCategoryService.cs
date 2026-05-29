@@ -208,7 +208,8 @@ namespace App.Core.Services
         // =============================================================
         private static string GenerateCategoryId()
         {
-            return "C-" + Guid.NewGuid().ToString("N");
+            // "C-" (2 chars) + 18 chars from a GUID = 20 chars total to fit NVARCHAR(20)
+            return "C-" + Guid.NewGuid().ToString("N").Substring(0, 18);
         }
 
         private static bool IsDuplicateKeyException(SqlException ex)
@@ -218,17 +219,32 @@ namespace App.Core.Services
 
         private static Category MapRow(SqlDataReader reader)
         {
+            // Check for DBNull.Value BEFORE calling ToString() to properly detect SQL NULLs
+            object idValue = reader["Id"];
+            if (idValue == DBNull.Value)
+                throw new InvalidOperationException("Id cannot be null");
+
+            object nameValue = reader["Name"];
+            if (nameValue == DBNull.Value)
+                throw new InvalidOperationException("Name cannot be null");
+
+            object categoryTypeValue = reader["CategoryType"];
+            if (categoryTypeValue == DBNull.Value)
+                throw new InvalidOperationException("CategoryType cannot be null");
+
+            object statusValue = reader["Status"];
+            if (statusValue == DBNull.Value)
+                throw new InvalidOperationException("Status cannot be null");
+
             return new Category
             {
-                Id = (reader["Id"]?.ToString()) ?? throw new InvalidOperationException("Id cannot be null"),
-                Name = (reader["Name"]?.ToString()) ?? throw new InvalidOperationException("Name cannot be null"),
-                CategoryType = Enum.Parse<CategoryTypeEnum>(
-                    reader["CategoryType"]?.ToString() ?? throw new InvalidOperationException("CategoryType cannot be null")),
+                Id = idValue.ToString()!,
+                Name = nameValue.ToString()!,
+                CategoryType = Enum.Parse<CategoryTypeEnum>(categoryTypeValue.ToString()!),
                 MonthlyBudget = reader["MonthlyBudget"] == DBNull.Value
                     ? null
                     : Convert.ToDecimal(reader["MonthlyBudget"]),
-                CategoryStatus = Enum.Parse<CategoryStatusEnum>(
-                    reader["Status"]?.ToString() ?? throw new InvalidOperationException("Status cannot be null"))
+                CategoryStatus = Enum.Parse<CategoryStatusEnum>(statusValue.ToString()!)
             };
         }
     }
