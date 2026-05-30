@@ -8,12 +8,26 @@ namespace App.WindowsForm
         private readonly Color _inactiveColor = Color.FromArgb(240, 240, 240);    // Light gray
         private readonly Color _inactiveTextColor = Color.FromArgb(33, 33, 33);   // Dark text
 
+        // Cache fonts to avoid repeated allocations (declared only here, not in Designer)
+        private Font? _regularFont;
+        private Font? _boldFont;
+
         public MainForm()
         {
             InitializeComponent();
+            InitializeFonts();
             LoadButtonIcons();
             SetupSidebarTabs();
             SelectTab(btnDashboard);
+        }
+
+        private void InitializeFonts()
+        {
+            if (btnDashboard.Font != null)
+            {
+                _regularFont = new Font(btnDashboard.Font, FontStyle.Regular);
+                _boldFont = new Font(btnDashboard.Font, FontStyle.Bold);
+            }
         }
 
         private void LoadButtonIcons()
@@ -25,17 +39,29 @@ namespace App.WindowsForm
                 string assetsPath = Path.Combine(basePath, "Assets");
 
                 // Load icons from Assets folder (24x24 recommended)
-                if (File.Exists(Path.Combine(assetsPath, "dashboard.png")))
-                    btnDashboard.Image = new Bitmap(Path.Combine(assetsPath, "dashboard.png"));
+                string dashboardPath = Path.Combine(assetsPath, "dashboard.png");
+                if (File.Exists(dashboardPath))
+                {
+                    btnDashboard.Image = new Bitmap(dashboardPath);
+                }
 
-                if (File.Exists(Path.Combine(assetsPath, "accounts.png")))
-                    btnAccounts.Image = new Bitmap(Path.Combine(assetsPath, "accounts.png"));
+                string accountsPath = Path.Combine(assetsPath, "accounts.png");
+                if (File.Exists(accountsPath))
+                {
+                    btnAccounts.Image = new Bitmap(accountsPath);
+                }
 
-                if (File.Exists(Path.Combine(assetsPath, "categories.png")))
-                    btnCategories.Image = new Bitmap(Path.Combine(assetsPath, "categories.png"));
+                string categoriesPath = Path.Combine(assetsPath, "categories.png");
+                if (File.Exists(categoriesPath))
+                {
+                    btnCategories.Image = new Bitmap(categoriesPath);
+                }
 
-                if (File.Exists(Path.Combine(assetsPath, "transactions.png")))
-                    btnTransaction.Image = new Bitmap(Path.Combine(assetsPath, "transactions.png"));
+                string transactionsPath = Path.Combine(assetsPath, "transactions.png");
+                if (File.Exists(transactionsPath))
+                {
+                    btnTransaction.Image = new Bitmap(transactionsPath);
+                }
             }
             catch (Exception ex)
             {
@@ -68,8 +94,11 @@ namespace App.WindowsForm
             }
         }
 
-        private void SelectTab(Button selectedButton)
+        private void SelectTab(Button? selectedButton)
         {
+            if (selectedButton == null)
+                return;
+
             var buttons = new[] { btnDashboard, btnAccounts, btnCategories, btnTransaction };
 
             // Reset all buttons to inactive state
@@ -77,7 +106,7 @@ namespace App.WindowsForm
             {
                 btn.BackColor = _inactiveColor;
                 btn.ForeColor = _inactiveTextColor;
-                btn.Font = new Font(btn.Font, FontStyle.Regular);
+                btn.Font = _regularFont;
                 btn.FlatAppearance.BorderSize = 0;
             }
 
@@ -85,14 +114,14 @@ namespace App.WindowsForm
             _activeButton = selectedButton;
             selectedButton.BackColor = _activeColor;
             selectedButton.ForeColor = _activeTextColor;
-            selectedButton.Font = new Font(selectedButton.Font, FontStyle.Bold);
+            selectedButton.Font = _boldFont;
 
             // Add a left border effect
             selectedButton.FlatAppearance.BorderColor = Color.FromArgb(0, 102, 204);
             selectedButton.FlatAppearance.BorderSize = 3;
         }
 
-        private void BtnDashboard_Click(object sender, EventArgs e)
+        private void BtnDashboard_Click(object? sender, EventArgs e)
         {
             SelectTab(btnDashboard);
             pnlContent.Controls.Clear();
@@ -100,7 +129,7 @@ namespace App.WindowsForm
             // pnlContent.Controls.Add(new DashboardControl());
         }
 
-        private void BtnAccounts_Click(object sender, EventArgs e)
+        private void BtnAccounts_Click(object? sender, EventArgs e)
         {
             SelectTab(btnAccounts);
             pnlContent.Controls.Clear();
@@ -108,7 +137,7 @@ namespace App.WindowsForm
             // pnlContent.Controls.Add(new AccountsControl());
         }
 
-        private void BtnCategories_Click(object sender, EventArgs e)
+        private void BtnCategories_Click(object? sender, EventArgs e)
         {
             SelectTab(btnCategories);
             pnlContent.Controls.Clear();
@@ -116,7 +145,7 @@ namespace App.WindowsForm
             // pnlContent.Controls.Add(new CategoriesControl());
         }
 
-        private void BtnTransaction_Click(object sender, EventArgs e)
+        private void BtnTransaction_Click(object? sender, EventArgs e)
         {
             SelectTab(btnTransaction);
             pnlContent.Controls.Clear();
