@@ -1,20 +1,40 @@
+using System.Configuration;
+using App.Core.Services;
+
 namespace App.WindowsForm
 {
     public partial class MainForm : Form
     {
+        // Service fields typed as interfaces (dependency inversion)
+        private readonly IAccountService _accountService;
+        private readonly ICategoryService _categoryService;
+        private readonly ITransactionService _transactionService;
+
         private Button? _activeButton;
         private readonly Color _activeColor = Color.FromArgb(200, 220, 255);      // Light blue
         private readonly Color _activeTextColor = Color.FromArgb(0, 102, 204);    // Blue text
         private readonly Color _inactiveColor = Color.FromArgb(240, 240, 240);    // Light gray
         private readonly Color _inactiveTextColor = Color.FromArgb(33, 33, 33);   // Dark text
 
-        // Cache fonts to avoid repeated allocations (declared only here, not in Designer)
+        // Cache fonts to avoid repeated allocations
         private Font? _regularFont;
         private Font? _boldFont;
 
         public MainForm()
         {
             InitializeComponent();
+
+            // Read connection string from App.config — ONE source of truth
+            string connStr = ConfigurationManager
+                .ConnectionStrings["FinanceTrackerDB"]
+                .ConnectionString;
+
+            // Build services once. Concrete types only mentioned here.
+            _accountService = new DbAccountService(connStr);
+            _categoryService = new DbCategoryService(connStr);
+            _transactionService = new DbTransactionService(connStr);
+
+            // Initialize UI
             InitializeFonts();
             LoadButtonIcons();
             SetupSidebarTabs();
@@ -133,24 +153,24 @@ namespace App.WindowsForm
         {
             SelectTab(btnAccounts);
             pnlContent.Controls.Clear();
-            // Load Accounts UserControl here
-            // pnlContent.Controls.Add(new AccountsControl());
+            // TODO: Pass _accountService to AccountsView
+            // pnlContent.Controls.Add(new AccountsView(_accountService));
         }
 
         private void BtnCategories_Click(object? sender, EventArgs e)
         {
             SelectTab(btnCategories);
             pnlContent.Controls.Clear();
-            // Load Categories UserControl here
-            // pnlContent.Controls.Add(new CategoriesControl());
+            // TODO: Pass _categoryService to CategoriesView
+            // pnlContent.Controls.Add(new CategoriesView(_categoryService));
         }
 
         private void BtnTransaction_Click(object? sender, EventArgs e)
         {
             SelectTab(btnTransaction);
             pnlContent.Controls.Clear();
-            // Load Transactions UserControl here
-            // pnlContent.Controls.Add(new TransactionsControl());
+            // TODO: Pass _transactionService to TransactionsView
+            // pnlContent.Controls.Add(new TransactionsView(_transactionService));
         }
     }
 }
