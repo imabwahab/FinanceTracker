@@ -30,7 +30,7 @@ namespace App.WindowsForm
         public MainForm()
         {
             var (accountService, categoryService, transactionService) = CreateDefaultServices();
-
+            
             _accountService = accountService;
             _categoryService = categoryService;
             _transactionService = transactionService;
@@ -120,6 +120,26 @@ namespace App.WindowsForm
 
             view.Visible = true;
             view.BringToFront();
+        }
+
+        /// <summary>
+        /// Dispose all cached views and event handlers on form close.
+        /// Prevents resource leaks from cached UserControl instances.
+        /// </summary>
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            // Dispose all cached views to release resources, event handlers, timers, etc.
+            foreach (var cachedView in _views.Values)
+            {
+                cachedView?.Dispose();
+            }
+            _views.Clear();
+
+            // Dispose fonts
+            _regularFont?.Dispose();
+            _boldFont?.Dispose();
+
+            base.OnFormClosed(e);
         }
 
         private void InitializeFonts()
