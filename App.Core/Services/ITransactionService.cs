@@ -8,7 +8,7 @@ namespace App.Core.Services
     public interface ITransactionService
     {
         List<Transaction> GetAll();
-        Transaction GetById(string id);
+        Transaction? GetById(string id);
         Transaction Add(Transaction transaction);
         bool Update(Transaction transaction);
         bool Delete(string id);
