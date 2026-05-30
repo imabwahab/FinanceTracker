@@ -1,20 +1,79 @@
+using System.Configuration;
+using App.Core.Services;
+
 namespace App.WindowsForm
 {
     public partial class MainForm : Form
     {
+        // Service fields typed as interfaces (dependency inversion)
+        private readonly IAccountService _accountService;
+        private readonly ICategoryService _categoryService;
+        private readonly ITransactionService _transactionService;
+
         private Button? _activeButton;
         private readonly Color _activeColor = Color.FromArgb(200, 220, 255);      // Light blue
         private readonly Color _activeTextColor = Color.FromArgb(0, 102, 204);    // Blue text
         private readonly Color _inactiveColor = Color.FromArgb(240, 240, 240);    // Light gray
         private readonly Color _inactiveTextColor = Color.FromArgb(33, 33, 33);   // Dark text
 
-        // Cache fonts to avoid repeated allocations (declared only here, not in Designer)
+        // Cache fonts to avoid repeated allocations
         private Font? _regularFont;
         private Font? _boldFont;
 
-        public MainForm()
+        /// <summary>
+        /// Parameterless constructor for WinForms designer.
+        /// Reads connection string from App.config and creates services.
+        /// </summary>
+        public MainForm() : this(CreateDefaultServices())
         {
+        }
+
+        /// <summary>
+        /// Constructor with dependency injection for services.
+        /// Allows for testing and flexible service implementations.
+        /// </summary>
+        public MainForm(IAccountService accountService, ICategoryService categoryService, ITransactionService transactionService)
+        {
+            ArgumentNullException.ThrowIfNull(accountService);
+            ArgumentNullException.ThrowIfNull(categoryService);
+            ArgumentNullException.ThrowIfNull(transactionService);
+
+            _accountService = accountService;
+            _categoryService = categoryService;
+            _transactionService = transactionService;
+
             InitializeComponent();
+            InitializeUI();
+        }
+
+        /// <summary>
+        /// Factory method to create default services from App.config.
+        /// </summary>
+        private static (IAccountService, ICategoryService, ITransactionService) CreateDefaultServices()
+        {
+            // Read connection string from App.config - ONE source of truth
+            string? connStr = ConfigurationManager.ConnectionStrings["FinanceTrackerDB"]?.ConnectionString;
+
+            if (string.IsNullOrWhiteSpace(connStr))
+            {
+                throw new ConfigurationErrorsException(
+                    "Missing or invalid connection string 'FinanceTrackerDB' in App.config. " +
+                    "Ensure App.config contains: <add name=\"FinanceTrackerDB\" connectionString=\"...\" />");
+            }
+
+            // Build services once. Concrete types only mentioned here.
+            var accountService = new DbAccountService(connStr);
+            var categoryService = new DbCategoryService(connStr);
+            var transactionService = new DbTransactionService(connStr);
+
+            return (accountService, categoryService, transactionService);
+        }
+
+        /// <summary>
+        /// Initialize UI components (fonts, icons, sidebar setup).
+        /// </summary>
+        private void InitializeUI()
+        {
             InitializeFonts();
             LoadButtonIcons();
             SetupSidebarTabs();
@@ -38,34 +97,28 @@ namespace App.WindowsForm
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;
                 string assetsPath = Path.Combine(basePath, "Assets");
 
-                // Load icons from Assets folder (24x24 recommended)
-                string dashboardPath = Path.Combine(assetsPath, "dashboard.png");
-                if (File.Exists(dashboardPath))
-                {
-                    btnDashboard.Image = new Bitmap(dashboardPath);
-                }
-
-                string accountsPath = Path.Combine(assetsPath, "accounts.png");
-                if (File.Exists(accountsPath))
-                {
-                    btnAccounts.Image = new Bitmap(accountsPath);
-                }
-
-                string categoriesPath = Path.Combine(assetsPath, "categories.png");
-                if (File.Exists(categoriesPath))
-                {
-                    btnCategories.Image = new Bitmap(categoriesPath);
-                }
-
-                string transactionsPath = Path.Combine(assetsPath, "transactions.png");
-                if (File.Exists(transactionsPath))
-                {
-                    btnTransaction.Image = new Bitmap(transactionsPath);
-                }
+                // Load and assign icons, then release file handles immediately
+                AssignButtonIcon(btnDashboard, Path.Combine(assetsPath, "dashboard.png"));
+                AssignButtonIcon(btnAccounts, Path.Combine(assetsPath, "accounts.png"));
+                AssignButtonIcon(btnCategories, Path.Combine(assetsPath, "categories.png"));
+                AssignButtonIcon(btnTransaction, Path.Combine(assetsPath, "transactions.png"));
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading icons: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private static void AssignButtonIcon(Button button, string imagePath)
+        {
+            if (File.Exists(imagePath))
+            {
+                // Load bitmap into memory, assign it, then release the file
+                using (var bitmap = new Bitmap(imagePath))
+                {
+                    // Clone the bitmap so the file can be released
+                    button.Image = (Bitmap)bitmap.Clone();
+                }
             }
         }
 
@@ -133,24 +186,24 @@ namespace App.WindowsForm
         {
             SelectTab(btnAccounts);
             pnlContent.Controls.Clear();
-            // Load Accounts UserControl here
-            // pnlContent.Controls.Add(new AccountsControl());
+            // TODO: Pass _accountService to AccountsView
+            // pnlContent.Controls.Add(new AccountsView(_accountService));
         }
 
         private void BtnCategories_Click(object? sender, EventArgs e)
         {
             SelectTab(btnCategories);
             pnlContent.Controls.Clear();
-            // Load Categories UserControl here
-            // pnlContent.Controls.Add(new CategoriesControl());
+            // TODO: Pass _categoryService to CategoriesView
+            // pnlContent.Controls.Add(new CategoriesView(_categoryService));
         }
 
         private void BtnTransaction_Click(object? sender, EventArgs e)
         {
             SelectTab(btnTransaction);
             pnlContent.Controls.Clear();
-            // Load Transactions UserControl here
-            // pnlContent.Controls.Add(new TransactionsControl());
+            // TODO: Pass _transactionService to TransactionsView
+            // pnlContent.Controls.Add(new TransactionsView(_transactionService));
         }
     }
 }
