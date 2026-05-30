@@ -27,8 +27,16 @@ namespace App.WindowsForm
         /// Parameterless constructor for WinForms designer.
         /// Reads connection string from App.config and creates services.
         /// </summary>
-        public MainForm() : this(CreateDefaultServices())
+        public MainForm()
         {
+            var (accountService, categoryService, transactionService) = CreateDefaultServices();
+
+            _accountService = accountService;
+            _categoryService = categoryService;
+            _transactionService = transactionService;
+
+            InitializeComponent();
+            InitializeUI();
         }
 
         /// <summary>
