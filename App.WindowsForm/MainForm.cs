@@ -1,4 +1,4 @@
-using System.Configuration;
+﻿using System.Configuration;
 using App.Core.Services;
 
 namespace App.WindowsForm
@@ -9,6 +9,9 @@ namespace App.WindowsForm
         private readonly IAccountService _accountService;
         private readonly ICategoryService _categoryService;
         private readonly ITransactionService _transactionService;
+
+        // Cache-aside pattern: views are created once and reused
+        private readonly Dictionary<Type, UserControl> _views = new Dictionary<Type, UserControl>();
 
         private Button? _activeButton;
         private readonly Color _activeColor = Color.FromArgb(200, 220, 255);      // Light blue
@@ -24,8 +27,16 @@ namespace App.WindowsForm
         /// Parameterless constructor for WinForms designer.
         /// Reads connection string from App.config and creates services.
         /// </summary>
-        public MainForm() : this(CreateDefaultServices())
+        public MainForm()
         {
+            var (accountService, categoryService, transactionService) = CreateDefaultServices();
+            
+            _accountService = accountService;
+            _categoryService = categoryService;
+            _transactionService = transactionService;
+
+            InitializeComponent();
+            InitializeUI();
         }
 
         /// <summary>
@@ -78,6 +89,57 @@ namespace App.WindowsForm
             LoadButtonIcons();
             SetupSidebarTabs();
             SelectTab(btnDashboard);
+        }
+
+        /// <summary>
+        /// Cache-aside pattern: display a view, creating it once via factory if needed.
+        /// Subsequent clicks reuse the same view instance, preserving its state.
+        /// </summary>
+        /// <typeparam name="T">UserControl type to display</typeparam>
+        /// <param name="factory">Lambda that constructs the view with dependencies</param>
+        private void ShowView<T>(Func<T> factory) where T : UserControl
+        {
+            ArgumentNullException.ThrowIfNull(factory);
+
+            var key = typeof(T);
+
+            // Cache miss → factory builds it, store it
+            if (!_views.TryGetValue(key, out var view))
+            {
+                view = factory();
+                view.Dock = DockStyle.Fill;
+                _views[key] = view;
+            }
+
+            // Ensure it's attached to the content panel
+            if (!pnlContent.Controls.Contains(view))
+            {
+                pnlContent.Controls.Clear();
+                pnlContent.Controls.Add(view);
+            }
+
+            view.Visible = true;
+            view.BringToFront();
+        }
+
+        /// <summary>
+        /// Dispose all cached views and event handlers on form close.
+        /// Prevents resource leaks from cached UserControl instances.
+        /// </summary>
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            // Dispose all cached views to release resources, event handlers, timers, etc.
+            foreach (var cachedView in _views.Values)
+            {
+                cachedView?.Dispose();
+            }
+            _views.Clear();
+
+            // Dispose fonts
+            _regularFont?.Dispose();
+            _boldFont?.Dispose();
+
+            base.OnFormClosed(e);
         }
 
         private void InitializeFonts()
@@ -174,36 +236,48 @@ namespace App.WindowsForm
             selectedButton.FlatAppearance.BorderSize = 3;
         }
 
+        /// <summary>
+        /// Display Dashboard view. Factory creates it once; subsequent clicks reuse it.
+        /// </summary>
         private void BtnDashboard_Click(object? sender, EventArgs e)
         {
             SelectTab(btnDashboard);
-            pnlContent.Controls.Clear();
-            // Load Dashboard UserControl here
-            // pnlContent.Controls.Add(new DashboardControl());
+            // TODO: Implement DashboardView in M5
+            // ShowView(() => new DashboardView(_transactionService, _categoryService));
         }
 
+        /// <summary>
+        /// Display Accounts view. Factory creates it once; subsequent clicks reuse it.
+        /// State (filters, scroll, selection) is preserved across clicks.
+        /// </summary>
         private void BtnAccounts_Click(object? sender, EventArgs e)
         {
             SelectTab(btnAccounts);
-            pnlContent.Controls.Clear();
-            // TODO: Pass _accountService to AccountsView
-            // pnlContent.Controls.Add(new AccountsView(_accountService));
+            // TODO: Implement AccountsView in M5
+            // ShowView(() => new AccountsView(_accountService));
         }
 
+        /// <summary>
+        /// Display Categories view. Factory creates it once; subsequent clicks reuse it.
+        /// State (filters, scroll, selection) is preserved across clicks.
+        /// </summary>
         private void BtnCategories_Click(object? sender, EventArgs e)
         {
             SelectTab(btnCategories);
-            pnlContent.Controls.Clear();
-            // TODO: Pass _categoryService to CategoriesView
-            // pnlContent.Controls.Add(new CategoriesView(_categoryService));
+            // TODO: Implement CategoriesView in M5
+            // ShowView(() => new CategoriesView(_categoryService));
         }
 
+        /// <summary>
+        /// Display Transactions view. Factory creates it once; subsequent clicks reuse it.
+        /// State (filters, scroll, selection) is preserved across clicks.
+        /// </summary>
         private void BtnTransaction_Click(object? sender, EventArgs e)
         {
             SelectTab(btnTransaction);
-            pnlContent.Controls.Clear();
-            // TODO: Pass _transactionService to TransactionsView
-            // pnlContent.Controls.Add(new TransactionsView(_transactionService));
+            // TODO: Implement TransactionsView in M5
+            // ShowView(() =>
+            //     new TransactionsView(_transactionService, _accountService, _categoryService));
         }
     }
 }
