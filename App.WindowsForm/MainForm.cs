@@ -20,21 +20,60 @@ namespace App.WindowsForm
         private Font? _regularFont;
         private Font? _boldFont;
 
-        public MainForm()
+        /// <summary>
+        /// Parameterless constructor for WinForms designer.
+        /// Reads connection string from App.config and creates services.
+        /// </summary>
+        public MainForm() : this(CreateDefaultServices())
         {
-            InitializeComponent();
+        }
 
-            // Read connection string from App.config — ONE source of truth
-            string connStr = ConfigurationManager
-                .ConnectionStrings["FinanceTrackerDB"]
-                .ConnectionString;
+        /// <summary>
+        /// Constructor with dependency injection for services.
+        /// Allows for testing and flexible service implementations.
+        /// </summary>
+        public MainForm(IAccountService accountService, ICategoryService categoryService, ITransactionService transactionService)
+        {
+            ArgumentNullException.ThrowIfNull(accountService);
+            ArgumentNullException.ThrowIfNull(categoryService);
+            ArgumentNullException.ThrowIfNull(transactionService);
+
+            _accountService = accountService;
+            _categoryService = categoryService;
+            _transactionService = transactionService;
+
+            InitializeComponent();
+            InitializeUI();
+        }
+
+        /// <summary>
+        /// Factory method to create default services from App.config.
+        /// </summary>
+        private static (IAccountService, ICategoryService, ITransactionService) CreateDefaultServices()
+        {
+            // Read connection string from App.config - ONE source of truth
+            string? connStr = ConfigurationManager.ConnectionStrings["FinanceTrackerDB"]?.ConnectionString;
+
+            if (string.IsNullOrWhiteSpace(connStr))
+            {
+                throw new ConfigurationErrorsException(
+                    "Missing or invalid connection string 'FinanceTrackerDB' in App.config. " +
+                    "Ensure App.config contains: <add name=\"FinanceTrackerDB\" connectionString=\"...\" />");
+            }
 
             // Build services once. Concrete types only mentioned here.
-            _accountService = new DbAccountService(connStr);
-            _categoryService = new DbCategoryService(connStr);
-            _transactionService = new DbTransactionService(connStr);
+            var accountService = new DbAccountService(connStr);
+            var categoryService = new DbCategoryService(connStr);
+            var transactionService = new DbTransactionService(connStr);
 
-            // Initialize UI
+            return (accountService, categoryService, transactionService);
+        }
+
+        /// <summary>
+        /// Initialize UI components (fonts, icons, sidebar setup).
+        /// </summary>
+        private void InitializeUI()
+        {
             InitializeFonts();
             LoadButtonIcons();
             SetupSidebarTabs();
@@ -58,34 +97,28 @@ namespace App.WindowsForm
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;
                 string assetsPath = Path.Combine(basePath, "Assets");
 
-                // Load icons from Assets folder (24x24 recommended)
-                string dashboardPath = Path.Combine(assetsPath, "dashboard.png");
-                if (File.Exists(dashboardPath))
-                {
-                    btnDashboard.Image = new Bitmap(dashboardPath);
-                }
-
-                string accountsPath = Path.Combine(assetsPath, "accounts.png");
-                if (File.Exists(accountsPath))
-                {
-                    btnAccounts.Image = new Bitmap(accountsPath);
-                }
-
-                string categoriesPath = Path.Combine(assetsPath, "categories.png");
-                if (File.Exists(categoriesPath))
-                {
-                    btnCategories.Image = new Bitmap(categoriesPath);
-                }
-
-                string transactionsPath = Path.Combine(assetsPath, "transactions.png");
-                if (File.Exists(transactionsPath))
-                {
-                    btnTransaction.Image = new Bitmap(transactionsPath);
-                }
+                // Load and assign icons, then release file handles immediately
+                AssignButtonIcon(btnDashboard, Path.Combine(assetsPath, "dashboard.png"));
+                AssignButtonIcon(btnAccounts, Path.Combine(assetsPath, "accounts.png"));
+                AssignButtonIcon(btnCategories, Path.Combine(assetsPath, "categories.png"));
+                AssignButtonIcon(btnTransaction, Path.Combine(assetsPath, "transactions.png"));
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading icons: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private static void AssignButtonIcon(Button button, string imagePath)
+        {
+            if (File.Exists(imagePath))
+            {
+                // Load bitmap into memory, assign it, then release the file
+                using (var bitmap = new Bitmap(imagePath))
+                {
+                    // Clone the bitmap so the file can be released
+                    button.Image = (Bitmap)bitmap.Clone();
+                }
             }
         }
 
