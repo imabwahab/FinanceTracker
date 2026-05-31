@@ -1,5 +1,6 @@
 ﻿using App.Core.Models;
 using App.Core.Services;
+using App.WindowsForm.Forms;
 
 namespace App.WindowsForm.Views
 {
@@ -64,16 +65,15 @@ namespace App.WindowsForm.Views
         {
             try
             {
-                // TODO: Implement AccountForm in M5.2
-                // using (var f = new AccountForm(AccountFormMode.Add, null))
-                // {
-                //     if (f.ShowDialog() == DialogResult.OK)
-                //     {
-                //         _service.Add(f.Result);
-                //         RefreshGrid();
-                //     }
-                // }
-                MessageBox.Show("Add functionality will be available in M5.2 (AccountForm).", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var f = new AccountForm(AccountFormMode.Add, null))
+                {
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        _service.Add(f.Result);
+                        RefreshGrid();
+                        MessageBox.Show("Account added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -95,16 +95,15 @@ namespace App.WindowsForm.Views
                     return;
                 }
 
-                // TODO: Implement AccountForm in M5.2
-                // using (var f = new AccountForm(AccountFormMode.Edit, selected))
-                // {
-                //     if (f.ShowDialog() == DialogResult.OK)
-                //     {
-                //         _service.Update(f.Result);
-                //         RefreshGrid();
-                //     }
-                // }
-                MessageBox.Show("Edit functionality will be available in M5.2 (AccountForm).", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var f = new AccountForm(AccountFormMode.Edit, selected))
+                {
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        _service.Update(f.Result);
+                        RefreshGrid();
+                        MessageBox.Show("Account updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -126,12 +125,10 @@ namespace App.WindowsForm.Views
                     return;
                 }
 
-                // TODO: Implement AccountForm in M5.2
-                // using (var f = new AccountForm(AccountFormMode.View, selected))
-                // {
-                //     f.ShowDialog();  // View-only: don't care about result
-                // }
-                MessageBox.Show($"Viewing Account:\nID: {selected.Id}\nName: {selected.Name}\nType: {selected.AccountType}\nBalance: {selected.OpeningBalance}", "View Account", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var f = new AccountForm(AccountFormMode.View, selected))
+                {
+                    f.ShowDialog();  // View-only: don't care about result
+                }
             }
             catch (Exception ex)
             {
