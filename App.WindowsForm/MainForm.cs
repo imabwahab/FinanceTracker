@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using App.Core.Services;
+using App.WindowsForm.Views;
 
 namespace App.WindowsForm
 {
@@ -253,8 +254,7 @@ namespace App.WindowsForm
         private void BtnAccounts_Click(object? sender, EventArgs e)
         {
             SelectTab(btnAccounts);
-            // TODO: Implement AccountsView in M5
-            // ShowView(() => new AccountsView(_accountService));
+            ShowView(() => new AccountsView(_accountService));
         }
 
         /// <summary>
