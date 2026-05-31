@@ -99,9 +99,17 @@ namespace App.WindowsForm.Views
                 {
                     if (f.ShowDialog() == DialogResult.OK)
                     {
-                        _service.Update(f.Result);
-                        RefreshGrid();
-                        MessageBox.Show("Account updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        // Check if update was successful
+                        if (_service.Update(f.Result))
+                        {
+                            RefreshGrid();
+                            MessageBox.Show("Account updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            RefreshGrid();
+                            MessageBox.Show("Account could not be updated (it may have been removed).", "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
                     }
                 }
             }
@@ -158,9 +166,16 @@ namespace App.WindowsForm.Views
 
                 if (result == DialogResult.Yes)
                 {
-                    _service.Delete(selected.Id);
-                    RefreshGrid();
-                    MessageBox.Show("Account deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (_service.Delete(selected.Id))
+                    {
+                        RefreshGrid();
+                        MessageBox.Show("Account deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        RefreshGrid();
+                        MessageBox.Show("Account could not be deleted (it may have been removed).", "Delete Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
             }
             catch (Exception ex)

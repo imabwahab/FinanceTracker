@@ -4,7 +4,7 @@ namespace App.WindowsForm.Forms
 {
     partial class AccountForm
     {
-        private System.ComponentModel.IContainer components = null;
+        private System.ComponentModel.IContainer? components = null;  // CHANGED: was null;
 
         protected override void Dispose(bool disposing)
         {
@@ -124,6 +124,7 @@ namespace App.WindowsForm.Forms
             numOpeningBalance.Location = new Point(140, 98);
             numOpeningBalance.Margin = new Padding(3, 4, 3, 4);
             numOpeningBalance.Maximum = new decimal(new int[] { 999999999, 0, 0, 0 });
+            numOpeningBalance.Minimum = new decimal(new int[] { 999999999, 0, 0, int.MinValue });
             numOpeningBalance.Name = "numOpeningBalance";
             numOpeningBalance.Size = new Size(281, 27);
             numOpeningBalance.TabIndex = 5;
@@ -223,17 +224,17 @@ namespace App.WindowsForm.Forms
 
         private TextBox txtName = null!;
         private ComboBox cmbAccountType = null!;
+        private Label lblOpeningBalance;
         private NumericUpDown numOpeningBalance = null!;
         private TextBox txtCurrency = null!;
         private ComboBox cmbStatus = null!;
         private Button btnSave = null!;
         private Button btnCancel = null!;
-        private TableLayoutPanel tableLayoutPanel;
-        private Label lblName;
-        private Label lblType;
-        private Label lblOpeningBalance;
-        private Label lblCurrency;
-        private Label lblStatus;
-        private Panel panelButtons;
+        private TableLayoutPanel tableLayoutPanel = null!;  // CHANGED: added = null!;
+        private Label lblName = null!;                      // CHANGED: added = null!;
+        private Label lblType = null!;                      // CHANGED: added = null!;
+        private Label lblCurrency = null!;                  // CHANGED: added = null!;
+        private Label lblStatus = null!;                    // CHANGED: added = null!;
+        private Panel panelButtons = null!;                 // CHANGED: added = null!;
     }
 }
