@@ -274,9 +274,8 @@ namespace App.WindowsForm
         private void BtnTransaction_Click(object? sender, EventArgs e)
         {
             SelectTab(btnTransaction);
-            // TODO: Implement TransactionsView in M5
-            // ShowView(() =>
-            //     new TransactionsView(_transactionService, _accountService, _categoryService));
+            ShowView(() =>
+                new TransactionsView(_transactionService, _accountService, _categoryService));
         }
     }
 }
