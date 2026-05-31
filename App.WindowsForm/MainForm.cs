@@ -264,8 +264,7 @@ namespace App.WindowsForm
         private void BtnCategories_Click(object? sender, EventArgs e)
         {
             SelectTab(btnCategories);
-            // TODO: Implement CategoriesView in M5
-            // ShowView(() => new CategoriesView(_categoryService));
+            ShowView(() => new CategoriesView(_categoryService));
         }
 
         /// <summary>
