@@ -254,7 +254,6 @@ namespace App.WindowsForm
         private void BtnAccounts_Click(object? sender, EventArgs e)
         {
             SelectTab(btnAccounts);
-            // TODO: Implement AccountsView in M5
             ShowView(() => new AccountsView(_accountService));
         }
 

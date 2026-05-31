@@ -6,11 +6,12 @@ namespace App.WindowsForm.Views
     public partial class AccountsView : UserControl
     {
         private readonly IAccountService _service;
+        private bool _loaded = false;
 
         public AccountsView(IAccountService service)
         {
             ArgumentNullException.ThrowIfNull(service);
-
+            
             _service = service;
             InitializeComponent();
 
@@ -24,8 +25,15 @@ namespace App.WindowsForm.Views
             btnDelete.Click += BtnDelete_Click;
             btnRefresh.Click += BtnRefresh_Click;
 
-            // Load data when view is first displayed
-            Load += (s, e) => RefreshGrid();
+            // Load data when view is first displayed (only once)
+            Load += (s, e) =>
+            {
+                if (!_loaded)
+                {
+                    _loaded = true;
+                    RefreshGrid();
+                }
+            };
         }
 
         /// <summary>
@@ -52,7 +60,7 @@ namespace App.WindowsForm.Views
         /// <summary>
         /// Add button click — open AccountForm in Add mode.
         /// </summary>
-        private void BtnAdd_Click(object sender, EventArgs e)
+        private void BtnAdd_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -76,7 +84,7 @@ namespace App.WindowsForm.Views
         /// <summary>
         /// Edit button click — open AccountForm in Edit mode.
         /// </summary>
-        private void BtnEdit_Click(object sender, EventArgs e)
+        private void BtnEdit_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -107,7 +115,7 @@ namespace App.WindowsForm.Views
         /// <summary>
         /// View button click — open AccountForm in View mode (read-only).
         /// </summary>
-        private void BtnView_Click(object sender, EventArgs e)
+        private void BtnView_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -134,7 +142,7 @@ namespace App.WindowsForm.Views
         /// <summary>
         /// Delete button click — prompt for confirmation and delete if confirmed.
         /// </summary>
-        private void BtnDelete_Click(object sender, EventArgs e)
+        private void BtnDelete_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -167,7 +175,7 @@ namespace App.WindowsForm.Views
         /// <summary>
         /// Refresh button click — reload the grid.
         /// </summary>
-        private void BtnRefresh_Click(object sender, EventArgs e)
+        private void BtnRefresh_Click(object? sender, EventArgs e)
         {
             RefreshGrid();
         }
