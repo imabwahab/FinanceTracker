@@ -31,9 +31,6 @@ namespace App.WindowsForm.Forms
             cmbCategoryType.DataSource = Enum.GetValues(typeof(CategoryTypeEnum));
             cmbStatus.DataSource = Enum.GetValues(typeof(CategoryStatusEnum));
 
-            // Wire checkbox to toggle budget NumericUpDown
-            chkHasBudget.CheckedChanged += (s, e) => numMonthlyBudget.Enabled = chkHasBudget.Checked;
-
             // Configure the form for the given mode
             ConfigureForMode();
 
@@ -42,6 +39,9 @@ namespace App.WindowsForm.Forms
             {
                 PopulateFields(_input);
             }
+
+            // Wire checkbox AFTER populating fields to avoid firing during initialization
+            chkHasBudget.CheckedChanged += (s, e) => numMonthlyBudget.Enabled = chkHasBudget.Checked;
 
             // Wire up button click handlers
             btnSave.Click += BtnSave_Click;
