@@ -209,7 +209,8 @@ namespace App.WindowsForm
                 };
             }
 
-            // Add SmokeTest button
+#if DEBUG
+            // Add SmokeTest button (development/debug only - not shipped to production)
             var btnSmokeTest = new Button
             {
                 Text = "🧪 Chart Test",
@@ -228,6 +229,7 @@ namespace App.WindowsForm
             };
 
             pnlSide.Controls.Add(btnSmokeTest);
+#endif
         }
 
         private void SelectTab(Button? selectedButton)

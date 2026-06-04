@@ -1,11 +1,13 @@
+#nullable enable
+
 namespace App.WindowsForm
 {
-    partial class ChartSmokeTestForm
+    public partial class ChartSmokeTestForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private System.ComponentModel.IContainer? components = null;
 
         /// <summary>
         /// Clean up any resources being used.

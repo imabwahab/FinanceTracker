@@ -30,6 +30,8 @@ namespace App.WindowsForm
                 Padding = new System.Windows.Forms.Padding(10)  // Explicitly use WinForms Padding
             };
 
+            // Set row to fill 100% of available height
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
 
