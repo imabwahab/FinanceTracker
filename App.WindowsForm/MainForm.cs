@@ -208,6 +208,28 @@ namespace App.WindowsForm
                     }
                 };
             }
+
+#if DEBUG
+            // Add SmokeTest button (development/debug only - not shipped to production)
+            var btnSmokeTest = new Button
+            {
+                Text = "🧪 Chart Test",
+                Dock = DockStyle.Bottom,
+                Height = 40,
+                BackColor = Color.FromArgb(240, 240, 240),
+                ForeColor = Color.FromArgb(33, 33, 33),
+                Font = _regularFont,
+                FlatStyle = FlatStyle.Flat
+            };
+
+            btnSmokeTest.Click += (s, e) =>
+            {
+                var testForm = new ChartSmokeTestForm();
+                testForm.Show();
+            };
+
+            pnlSide.Controls.Add(btnSmokeTest);
+#endif
         }
 
         private void SelectTab(Button? selectedButton)
