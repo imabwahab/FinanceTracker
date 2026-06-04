@@ -1,3 +1,4 @@
+using System.Windows.Forms;
 using App.Core.Models;
 using App.Core.Services;
 using App.WindowsForm.Forms;
@@ -66,6 +67,7 @@ namespace App.WindowsForm.Views
                         _service.Add(f.Result);
                         RefreshGrid();
                         MessageBox.Show("Category added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        (ParentForm as MainForm)?.RefreshDashboardIfCached();
                     }
                 }
             }
@@ -94,6 +96,7 @@ namespace App.WindowsForm.Views
                         {
                             RefreshGrid();
                             MessageBox.Show("Category updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            (ParentForm as MainForm)?.RefreshDashboardIfCached();
                         }
                         else
                         {
@@ -154,6 +157,7 @@ namespace App.WindowsForm.Views
                     {
                         RefreshGrid();
                         MessageBox.Show("Category deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        (ParentForm as MainForm)?.RefreshDashboardIfCached();
                     }
                     else
                     {

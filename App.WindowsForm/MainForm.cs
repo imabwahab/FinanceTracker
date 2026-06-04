@@ -265,8 +265,19 @@ namespace App.WindowsForm
         private void BtnDashboard_Click(object? sender, EventArgs e)
         {
             SelectTab(btnDashboard);
-            // TODO: Implement DashboardView in M5
-            // ShowView(() => new DashboardView(_transactionService, _categoryService));
+            ShowView(() => new DashboardView(_transactionService, _categoryService, _accountService));
+        }
+
+        /// <summary>
+        /// Called from views after they mutate data.
+        /// Refreshes the Dashboard if it's been opened at least once.
+        /// </summary>
+        public void RefreshDashboardIfCached()
+        {
+            if (_views.TryGetValue(typeof(DashboardView), out var view) && view is DashboardView dash)
+            {
+                dash.RefreshCharts();
+            }
         }
 
         /// <summary>
