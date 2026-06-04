@@ -64,15 +64,17 @@ namespace App.WindowsForm.Views
                 var allTxns = _txnService.GetAll();
                 var categories = _categoryService.GetAll();
 
-                // Group transactions by CategoryId, sum the amounts.
-                // Then look up the category name for each group.
+                // Pre-group transactions by CategoryId once (O(n))
+                var totalsByCategory = allTxns
+                    .GroupBy(t => t.CategoryId)
+                    .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
+
+                // Then build slices by joining categories to the pre-computed totals (O(m))
                 var slices = categories
                     .Select(c => new
                     {
                         Name = c.Name,
-                        Total = allTxns
-                            .Where(t => t.CategoryId == c.Id)
-                            .Sum(t => t.Amount)
+                        Total = totalsByCategory.TryGetValue(c.Id, out var total) ? total : 0m
                     })
                     .Where(x => x.Total > 0)   // skip categories with no transactions
                     .OrderByDescending(x => x.Total)

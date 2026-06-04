@@ -103,10 +103,10 @@ namespace App.WindowsForm.Views
 
         #endregion
 
-        private Panel pnlHeader;
-        private Button btnRefresh;
-        private TableLayoutPanel tableLayoutPanel1;
-        private LiveChartsCore.SkiaSharpView.WinForms.PieChart pieChart;
-        private LiveChartsCore.SkiaSharpView.WinForms.CartesianChart cartesianChart;
+        private Panel pnlHeader = null!;
+        private Button btnRefresh = null!;
+        private TableLayoutPanel tableLayoutPanel1 = null!;
+        private LiveChartsCore.SkiaSharpView.WinForms.PieChart pieChart = null!;
+        private LiveChartsCore.SkiaSharpView.WinForms.CartesianChart cartesianChart = null!;
     }
 }
