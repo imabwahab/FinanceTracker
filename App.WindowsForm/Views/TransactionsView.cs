@@ -1,3 +1,4 @@
+using System.Windows.Forms;
 using App.Core.Models;
 using App.Core.Services;
 using App.WindowsForm.Forms;
@@ -79,6 +80,7 @@ namespace App.WindowsForm.Views
                         _transactionService.Add(f.Result);
                         RefreshGrid();
                         MessageBox.Show("Transaction added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        (ParentForm as MainForm)?.RefreshDashboardIfCached();
                     }
                 }
             }
@@ -111,6 +113,7 @@ namespace App.WindowsForm.Views
                         {
                             RefreshGrid();
                             MessageBox.Show("Transaction updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            (ParentForm as MainForm)?.RefreshDashboardIfCached();
                         }
                         else
                         {
@@ -176,6 +179,7 @@ namespace App.WindowsForm.Views
                     _transactionService.Delete(selected.Id);
                     RefreshGrid();
                     MessageBox.Show("Transaction deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    (ParentForm as MainForm)?.RefreshDashboardIfCached();
                 }
             }
             catch (Exception ex)
