@@ -2,6 +2,7 @@ using System.Windows.Forms;
 using App.Core.Models;
 using App.Core.Services;
 using App.WindowsForm.Forms;
+using App.Core.Enums;
 
 namespace App.WindowsForm.Views
 {
@@ -34,15 +35,73 @@ namespace App.WindowsForm.Views
             btnDelete.Click += BtnDelete_Click;
             btnRefresh.Click += BtnRefresh_Click;
 
+            // Wire filter buttons
+            btnApply.Click += BtnApply_Click;
+            btnClear.Click += BtnClear_Click;
+
             // Load data when view is first displayed (only once)
             Load += (s, e) =>
             {
                 if (!_loaded)
                 {
                     _loaded = true;
+                    InitializeFilters();
                     RefreshGrid();
                 }
             };
+        }
+
+        /// <summary>
+        /// Initialize filter dropdowns with data from services.
+        /// </summary>
+        private void InitializeFilters()
+        {
+            try
+            {
+                // Initialize Account filter
+                var accounts = _accountService.GetAll();
+                var accountList = new List<(string Id, string Name)>
+                {
+                    ("", "All Accounts")
+                };
+                accountList.AddRange(accounts.Select(a => (a.Id, a.Name)));
+                cmbFilterAccount.DataSource = accountList;
+                cmbFilterAccount.DisplayMember = "Name";
+                cmbFilterAccount.ValueMember = "Id";
+                cmbFilterAccount.SelectedIndex = 0;
+
+                // Initialize Category filter
+                var categories = _categoryService.GetAll();
+                var categoryList = new List<(string Id, string Name)>
+                {
+                    ("", "All Categories")
+                };
+                categoryList.AddRange(categories.Select(c => (c.Id, c.Name)));
+                cmbFilterCategory.DataSource = categoryList;
+                cmbFilterCategory.DisplayMember = "Name";
+                cmbFilterCategory.ValueMember = "Id";
+                cmbFilterCategory.SelectedIndex = 0;
+
+                // Initialize Status filter
+                var statusList = new List<(TransactionStatusEnum? Status, string Name)>
+                {
+                    (null, "All Statuses"),
+                    (TransactionStatusEnum.Cleared, "Cleared"),
+                    (TransactionStatusEnum.Pending, "Pending")
+                };
+                cmbFilterStatus.DataSource = statusList;
+                cmbFilterStatus.DisplayMember = "Name";
+                cmbFilterStatus.ValueMember = "Status";
+                cmbFilterStatus.SelectedIndex = 0;
+
+                // Initialize date pickers to a reasonable range (past 12 months to today)
+                dtpTo.Value = DateTime.UtcNow.Date;
+                dtpFrom.Value = DateTime.UtcNow.Date.AddMonths(-12);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error initializing filters: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         /// <summary>
@@ -65,6 +124,60 @@ namespace App.WindowsForm.Views
         /// Returns null if no selection.
         /// </summary>
         private Transaction? SelectedTransaction => bindingSource1.Current as Transaction;
+
+        /// <summary>
+        /// Apply filters: extract values from controls and call Search.
+        /// </summary>
+        private void BtnApply_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                // Extract filter values
+                string? searchText = string.IsNullOrWhiteSpace(txtSearch.Text) ? null : txtSearch.Text;
+                string? accountId = cmbFilterAccount.SelectedIndex == 0 ? null : (string)cmbFilterAccount.SelectedValue!;
+                string? categoryId = cmbFilterCategory.SelectedIndex == 0 ? null : (string)cmbFilterCategory.SelectedValue!;
+                TransactionStatusEnum? status = cmbFilterStatus.SelectedIndex == 0
+                    ? (TransactionStatusEnum?)null
+                    : (TransactionStatusEnum)cmbFilterStatus.SelectedValue!;
+
+                // Call Search with the filter parameters
+                var results = _transactionService.Search(
+                    searchText,
+                    accountId,
+                    categoryId,
+                    dtpFrom.Value,
+                    dtpTo.Value,
+                    status);
+
+                bindingSource1.DataSource = results;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error applying filters: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Clear all filters and reset to default view.
+        /// </summary>
+        private void BtnClear_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                txtSearch.Clear();
+                cmbFilterAccount.SelectedIndex = 0;
+                cmbFilterCategory.SelectedIndex = 0;
+                cmbFilterStatus.SelectedIndex = 0;
+                dtpFrom.Value = DateTime.UtcNow.Date.AddMonths(-12);
+                dtpTo.Value = DateTime.UtcNow.Date;
+
+                RefreshGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error clearing filters: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         /// <summary>
         /// Add button click — open TransactionForm in Add mode.
