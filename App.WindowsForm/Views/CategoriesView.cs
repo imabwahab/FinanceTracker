@@ -9,20 +9,26 @@ namespace App.WindowsForm.Views
     /// List view for Categories with Add/Edit/View/Delete/Refresh toolbar.
     /// Mirrors AccountsView pattern; uses CategoryForm for modal dialogs.
     /// </summary>
-    public partial class CategoriesView : UserControl
+    public partial class CategoriesView : UserControl, IRecordCountSource
     {
         private readonly ICategoryService _service;
         private bool _loaded = false;
 
+        /// <summary>Number of rows currently shown in the grid (for the status bar).</summary>
+        public int RecordCount => bindingSource1.Count;
+
         public CategoriesView(ICategoryService service)
         {
             ArgumentNullException.ThrowIfNull(service);
-            
+
             _service = service;
             InitializeComponent();
 
             // Bind the DataGridView to the BindingSource
             dgvCategories.DataSource = bindingSource1;
+
+            // Enable client-side column sorting once columns are generated.
+            dgvCategories.DataBindingComplete += (s, e) => GridSorting.EnableColumnSorting(dgvCategories);
 
             // Wire toolbar buttons
             btnAdd.Click += BtnAdd_Click;
@@ -46,7 +52,9 @@ namespace App.WindowsForm.Views
         {
             try
             {
-                bindingSource1.DataSource = _service.GetAll();
+                // Wrap in SortableBindingList so DataGridView headers can sort in memory.
+                bindingSource1.DataSource = new SortableBindingList<Category>(_service.GetAll());
+                (ParentForm as MainForm)?.UpdateStatusBar();
             }
             catch (Exception ex)
             {
