@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using App.Core.Enums;
 using App.Core.Models;
 using Microsoft.Data.SqlClient;
@@ -38,6 +39,41 @@ namespace App.Core.Services
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
+                        {
+                            transactions.Add(MapRow(reader));
+                        }
+                    }
+                }
+            }
+
+            return transactions;
+        }
+
+        // -------------------------------------------------------------
+        // GetAllAsync: async counterpart to GetAll.
+        //
+        // Each I/O step is awaited independently - OpenAsync (connect),
+        // ExecuteReaderAsync (server starts sending), ReadAsync (each packet
+        // of rows) - so the calling UI thread is released during every wait.
+        // ConfigureAwait(false) avoids capturing a context we don't need here;
+        // the UI marshalling happens when the *view's* await resumes.
+        // -------------------------------------------------------------
+        public async Task<List<Transaction>> GetAllAsync()
+        {
+            List<Transaction> transactions = new List<Transaction>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync().ConfigureAwait(false);
+
+                using (SqlCommand cmd = new SqlCommand(
+                    "SELECT Id, AccountId, CategoryId, Amount, TransactionDate, " +
+                    "       Description, IsRecurring, RecurringFrequency, Status " +
+                    "FROM Transactions ORDER BY TransactionDate DESC", conn))
+                {
+                    using (SqlDataReader reader = (SqlDataReader)await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
                         {
                             transactions.Add(MapRow(reader));
                         }
