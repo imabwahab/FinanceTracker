@@ -45,14 +45,15 @@ namespace App.WindowsForm.Views
             btnApply.Click += BtnApply_Click;
             btnClear.Click += BtnClear_Click;
 
-            // Load data when view is first displayed (only once)
-            Load += (s, e) =>
+            // Load data when view is first displayed (only once).
+            // Async so the grid loads without freezing the UI thread.
+            Load += async (s, e) =>
             {
                 if (!_loaded)
                 {
                     _loaded = true;
                     InitializeFilters();
-                    RefreshGrid();
+                    await RefreshGridAsync();
                 }
             };
         }
@@ -112,6 +113,7 @@ namespace App.WindowsForm.Views
 
         /// <summary>
         /// Refresh the DataGridView by fetching all transactions from the service.
+        /// Used by the synchronous mutation flows (Add/Edit/Delete/Clear).
         /// </summary>
         private void RefreshGrid()
         {
@@ -124,6 +126,34 @@ namespace App.WindowsForm.Views
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading transactions: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Async refresh used for the (potentially large) full transaction list.
+        /// Shows a wait cursor and disables Refresh while the DB call is in flight,
+        /// so the UI thread stays responsive and the button can't double-fire.
+        /// </summary>
+        private async Task RefreshGridAsync()
+        {
+            btnRefresh.Enabled = false;
+            Cursor = Cursors.WaitCursor;
+            try
+            {
+                var data = await _transactionService.GetAllAsync();
+
+                // Wrap in SortableBindingList so DataGridView headers can sort in memory.
+                bindingSource1.DataSource = new SortableBindingList<Transaction>(data);
+                (ParentForm as MainForm)?.UpdateStatusBar();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading transactions: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                Cursor = Cursors.Default;
+                btnRefresh.Enabled = true;
             }
         }
 
@@ -312,11 +342,12 @@ namespace App.WindowsForm.Views
         }
 
         /// <summary>
-        /// Refresh button click — reload data from service.
+        /// Refresh button click — reload data from service asynchronously.
+        /// async void is acceptable here because this is a top-level event handler.
         /// </summary>
-        private void BtnRefresh_Click(object? sender, EventArgs e)
+        private async void BtnRefresh_Click(object? sender, EventArgs e)
         {
-            RefreshGrid();
+            await RefreshGridAsync();
         }
     }
 }
