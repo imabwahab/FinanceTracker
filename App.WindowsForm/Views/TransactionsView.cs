@@ -6,12 +6,15 @@ using App.Core.Enums;
 
 namespace App.WindowsForm.Views
 {
-    public partial class TransactionsView : UserControl
+    public partial class TransactionsView : UserControl, IRecordCountSource
     {
         private readonly ITransactionService _transactionService;
         private readonly IAccountService _accountService;
         private readonly ICategoryService _categoryService;
         private bool _loaded = false;
+
+        /// <summary>Number of rows currently shown in the grid (for the status bar).</summary>
+        public int RecordCount => bindingSource1.Count;
 
         public TransactionsView(ITransactionService transactionService, IAccountService accountService, ICategoryService categoryService)
         {
@@ -27,6 +30,9 @@ namespace App.WindowsForm.Views
 
             // Bind the DataGridView to the BindingSource
             dgvTransactions.DataSource = bindingSource1;
+
+            // Enable client-side column sorting once columns are generated.
+            dgvTransactions.DataBindingComplete += (s, e) => GridSorting.EnableColumnSorting(dgvTransactions);
 
             // Wire toolbar buttons
             btnAdd.Click += BtnAdd_Click;
@@ -111,7 +117,9 @@ namespace App.WindowsForm.Views
         {
             try
             {
-                bindingSource1.DataSource = _transactionService.GetAll();
+                // Wrap in SortableBindingList so DataGridView headers can sort in memory.
+                bindingSource1.DataSource = new SortableBindingList<Transaction>(_transactionService.GetAll());
+                (ParentForm as MainForm)?.UpdateStatusBar();
             }
             catch (Exception ex)
             {
@@ -149,7 +157,9 @@ namespace App.WindowsForm.Views
                     dtpTo.Value,
                     status);
 
-                bindingSource1.DataSource = results;
+                // Wrap in SortableBindingList so filtered results stay sortable too.
+                bindingSource1.DataSource = new SortableBindingList<Transaction>(results);
+                (ParentForm as MainForm)?.UpdateStatusBar();
             }
             catch (Exception ex)
             {
