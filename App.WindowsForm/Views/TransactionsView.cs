@@ -61,38 +61,38 @@ namespace App.WindowsForm.Views
             {
                 // Initialize Account filter
                 var accounts = _accountService.GetAll();
-                var accountList = new List<(string Id, string Name)>
+                var accountList = new List<ComboItem<string>>
                 {
-                    ("", "All Accounts")
+                    new ComboItem<string>("", "All Accounts")
                 };
-                accountList.AddRange(accounts.Select(a => (a.Id, a.Name)));
+                accountList.AddRange(accounts.Select(a => new ComboItem<string>(a.Id, a.Name)));
                 cmbFilterAccount.DataSource = accountList;
                 cmbFilterAccount.DisplayMember = "Name";
-                cmbFilterAccount.ValueMember = "Id";
+                cmbFilterAccount.ValueMember = "Value";
                 cmbFilterAccount.SelectedIndex = 0;
 
                 // Initialize Category filter
                 var categories = _categoryService.GetAll();
-                var categoryList = new List<(string Id, string Name)>
+                var categoryList = new List<ComboItem<string>>
                 {
-                    ("", "All Categories")
+                    new ComboItem<string>("", "All Categories")
                 };
-                categoryList.AddRange(categories.Select(c => (c.Id, c.Name)));
+                categoryList.AddRange(categories.Select(c => new ComboItem<string>(c.Id, c.Name)));
                 cmbFilterCategory.DataSource = categoryList;
                 cmbFilterCategory.DisplayMember = "Name";
-                cmbFilterCategory.ValueMember = "Id";
+                cmbFilterCategory.ValueMember = "Value";
                 cmbFilterCategory.SelectedIndex = 0;
 
                 // Initialize Status filter
-                var statusList = new List<(TransactionStatusEnum? Status, string Name)>
+                var statusList = new List<ComboItem<TransactionStatusEnum?>>
                 {
-                    (null, "All Statuses"),
-                    (TransactionStatusEnum.Cleared, "Cleared"),
-                    (TransactionStatusEnum.Pending, "Pending")
+                    new ComboItem<TransactionStatusEnum?>(null, "All Statuses"),
+                    new ComboItem<TransactionStatusEnum?>(TransactionStatusEnum.Cleared, "Cleared"),
+                    new ComboItem<TransactionStatusEnum?>(TransactionStatusEnum.Pending, "Pending")
                 };
                 cmbFilterStatus.DataSource = statusList;
                 cmbFilterStatus.DisplayMember = "Name";
-                cmbFilterStatus.ValueMember = "Status";
+                cmbFilterStatus.ValueMember = "Value";
                 cmbFilterStatus.SelectedIndex = 0;
 
                 // Initialize date pickers to a reasonable range (past 12 months to today)
@@ -103,6 +103,31 @@ namespace App.WindowsForm.Views
             {
                 MessageBox.Show($"Error initializing filters: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        /// <summary>
+        /// Bindable item for the filter combo boxes.
+        ///
+        /// A C# value tuple cannot be used here: its element names (Id/Name/Status)
+        /// are compiler sugar, not real members, so a ValueTuple only exposes the
+        /// fields Item1/Item2 at runtime. DisplayMember/ValueMember binding resolves
+        /// members by reflection over PROPERTIES, so binding to a tuple throws
+        /// "Cannot bind to the new display member". This class exposes real
+        /// properties (Name, Value) that data binding can resolve.
+        /// </summary>
+        private sealed class ComboItem<TValue>
+        {
+            public ComboItem(TValue value, string name)
+            {
+                Value = value;
+                Name = name;
+            }
+
+            /// <summary>Bound to ValueMember; returned by ComboBox.SelectedValue.</summary>
+            public TValue Value { get; }
+
+            /// <summary>Bound to DisplayMember; the text shown in the dropdown.</summary>
+            public string Name { get; }
         }
 
         /// <summary>
