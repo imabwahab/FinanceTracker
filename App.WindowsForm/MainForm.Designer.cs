@@ -28,12 +28,7 @@ namespace App.WindowsForm
             btnCategories = new Button();
             btnTransaction = new Button();
             pnlContent = new Panel();
-            statusStrip1 = new StatusStrip();
-            lblBalance = new ToolStripStatusLabel();
-            lblRecordCount = new ToolStripStatusLabel();
-            lblLastAction = new ToolStripStatusLabel();
             pnlSide.SuspendLayout();
-            statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // pnlSide
@@ -130,56 +125,21 @@ namespace App.WindowsForm
             pnlContent.Dock = DockStyle.Fill;
             pnlContent.Location = new Point(220, 0);
             pnlContent.Name = "pnlContent";
-            pnlContent.Size = new Size(980, 678);
+            pnlContent.Size = new Size(980, 700);
             pnlContent.TabIndex = 1;
-            //
-            // statusStrip1
-            //
-            statusStrip1.Items.AddRange(new ToolStripItem[] { lblBalance, lblRecordCount, lblLastAction });
-            statusStrip1.Location = new Point(0, 678);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(1200, 22);
-            statusStrip1.SizingGrip = false;
-            statusStrip1.TabIndex = 2;
-            //
-            // lblBalance
-            //
-            lblBalance.BorderSides = ToolStripStatusLabelBorderSides.Right;
-            lblBalance.Name = "lblBalance";
-            lblBalance.Size = new Size(140, 17);
-            lblBalance.Text = "Total Active Balance: 0.00";
-            //
-            // lblRecordCount
-            //
-            lblRecordCount.BorderSides = ToolStripStatusLabelBorderSides.Right;
-            lblRecordCount.Name = "lblRecordCount";
-            lblRecordCount.Size = new Size(70, 17);
-            lblRecordCount.Text = "Records: 0";
-            //
-            // lblLastAction
-            //
-            lblLastAction.Name = "lblLastAction";
-            lblLastAction.Size = new Size(80, 17);
-            lblLastAction.Spring = true;
-            lblLastAction.Text = "Last action: —";
-            lblLastAction.TextAlign = ContentAlignment.MiddleRight;
-            //
+            // 
             // MainForm
-            //
+            // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1200, 700);
             Controls.Add(pnlContent);
             Controls.Add(pnlSide);
-            Controls.Add(statusStrip1);
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Finance Tracker";
             pnlSide.ResumeLayout(false);
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
@@ -190,9 +150,5 @@ namespace App.WindowsForm
         private Button btnCategories = null!;
         private Button btnTransaction = null!;
         private Panel pnlContent = null!;
-        private StatusStrip statusStrip1 = null!;
-        private ToolStripStatusLabel lblBalance = null!;
-        private ToolStripStatusLabel lblRecordCount = null!;
-        private ToolStripStatusLabel lblLastAction = null!;
     }
 }

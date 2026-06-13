@@ -52,9 +52,6 @@ namespace App.WindowsForm.Views
         {
             BuildAmountByCategoryPie();
             BuildOpeningBalanceByAccountColumn();
-
-            // Keep the status bar balance in sync when the dashboard refreshes.
-            (ParentForm as MainForm)?.UpdateStatusBar();
         }
 
         /// <summary>

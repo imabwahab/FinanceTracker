@@ -6,15 +6,12 @@ using App.Core.Enums;
 
 namespace App.WindowsForm.Views
 {
-    public partial class TransactionsView : UserControl, IRecordCountSource
+    public partial class TransactionsView : UserControl
     {
         private readonly ITransactionService _transactionService;
         private readonly IAccountService _accountService;
         private readonly ICategoryService _categoryService;
         private bool _loaded = false;
-
-        /// <summary>Number of rows currently shown in the grid (for the status bar).</summary>
-        public int RecordCount => bindingSource1.Count;
 
         public TransactionsView(ITransactionService transactionService, IAccountService accountService, ICategoryService categoryService)
         {
@@ -30,9 +27,6 @@ namespace App.WindowsForm.Views
 
             // Bind the DataGridView to the BindingSource
             dgvTransactions.DataSource = bindingSource1;
-
-            // Enable client-side column sorting once columns are generated.
-            dgvTransactions.DataBindingComplete += (s, e) => GridSorting.EnableColumnSorting(dgvTransactions);
 
             // Wire toolbar buttons
             btnAdd.Click += BtnAdd_Click;
@@ -119,9 +113,7 @@ namespace App.WindowsForm.Views
         {
             try
             {
-                // Wrap in SortableBindingList so DataGridView headers can sort in memory.
-                bindingSource1.DataSource = new SortableBindingList<Transaction>(_transactionService.GetAll());
-                (ParentForm as MainForm)?.UpdateStatusBar();
+                bindingSource1.DataSource = _transactionService.GetAll();
             }
             catch (Exception ex)
             {
@@ -141,10 +133,7 @@ namespace App.WindowsForm.Views
             try
             {
                 var data = await _transactionService.GetAllAsync();
-
-                // Wrap in SortableBindingList so DataGridView headers can sort in memory.
-                bindingSource1.DataSource = new SortableBindingList<Transaction>(data);
-                (ParentForm as MainForm)?.UpdateStatusBar();
+                bindingSource1.DataSource = data;
             }
             catch (Exception ex)
             {
@@ -187,9 +176,7 @@ namespace App.WindowsForm.Views
                     dtpTo.Value,
                     status);
 
-                // Wrap in SortableBindingList so filtered results stay sortable too.
-                bindingSource1.DataSource = new SortableBindingList<Transaction>(results);
-                (ParentForm as MainForm)?.UpdateStatusBar();
+                bindingSource1.DataSource = results;
             }
             catch (Exception ex)
             {

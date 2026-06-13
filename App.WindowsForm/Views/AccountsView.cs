@@ -5,26 +5,20 @@ using App.WindowsForm.Forms;
 
 namespace App.WindowsForm.Views
 {
-    public partial class AccountsView : UserControl, IRecordCountSource
+    public partial class AccountsView : UserControl
     {
         private readonly IAccountService _service;
         private bool _loaded = false;
 
-        /// <summary>Number of rows currently shown in the grid (for the status bar).</summary>
-        public int RecordCount => bindingSource1.Count;
-
         public AccountsView(IAccountService service)
         {
             ArgumentNullException.ThrowIfNull(service);
-
+            
             _service = service;
             InitializeComponent();
 
             // Bind the DataGridView to the BindingSource
             dgvAccounts.DataSource = bindingSource1;
-
-            // Enable client-side column sorting once columns are generated.
-            dgvAccounts.DataBindingComplete += (s, e) => GridSorting.EnableColumnSorting(dgvAccounts);
 
             // Wire toolbar buttons
             btnAdd.Click += BtnAdd_Click;
@@ -51,9 +45,7 @@ namespace App.WindowsForm.Views
         {
             try
             {
-                // Wrap in SortableBindingList so DataGridView headers can sort in memory.
-                bindingSource1.DataSource = new SortableBindingList<Account>(_service.GetAll());
-                (ParentForm as MainForm)?.UpdateStatusBar();
+                bindingSource1.DataSource = _service.GetAll();
             }
             catch (Exception ex)
             {

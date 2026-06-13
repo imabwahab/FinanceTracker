@@ -1,5 +1,4 @@
 ﻿using System.Configuration;
-using App.Core.Enums;
 using App.Core.Services;
 using App.WindowsForm.Views;
 
@@ -14,10 +13,6 @@ namespace App.WindowsForm
 
         // Cache-aside pattern: views are created once and reused
         private readonly Dictionary<Type, UserControl> _views = new Dictionary<Type, UserControl>();
-
-        // The view currently shown in the content panel (used by the status bar
-        // to report the record count of whatever the user is looking at).
-        private UserControl? _currentView;
 
         private Button? _activeButton;
         private readonly Color _activeColor = Color.FromArgb(200, 220, 255);      // Light blue
@@ -95,10 +90,6 @@ namespace App.WindowsForm
             LoadButtonIcons();
             SetupSidebarTabs();
             SelectTab(btnDashboard);
-
-            // Populate the status bar immediately so the balance shows on startup,
-            // before any view has been opened.
-            UpdateStatusBar();
         }
 
         /// <summary>
@@ -130,44 +121,6 @@ namespace App.WindowsForm
 
             view.Visible = true;
             view.BringToFront();
-
-            // Remember what's on screen and refresh the status bar so the record
-            // count reflects this view (even when switching to an already-cached one).
-            _currentView = view;
-            UpdateStatusBar();
-        }
-
-        /// <summary>
-        /// Recalculates and updates the bottom status bar:
-        ///   • total balance across all ACTIVE accounts,
-        ///   • record count of the currently displayed view,
-        ///   • timestamp of this (the most recent) action.
-        ///
-        /// Public so views can call it after they mutate or reload data via
-        /// (ParentForm as MainForm)?.UpdateStatusBar().
-        /// </summary>
-        public void UpdateStatusBar()
-        {
-            // Total balance — a single GetAll() summed in memory. Cheap for the
-            // handful of accounts this app deals with. (See README viva notes.)
-            try
-            {
-                decimal totalBalance = _accountService.GetAll()
-                    .Where(a => a.AccountStatus == AccountStatusEnum.Active)
-                    .Sum(a => a.OpeningBalance);
-
-                lblBalance.Text = $"Total Active Balance: {totalBalance:N2}";
-            }
-            catch
-            {
-                lblBalance.Text = "Total Active Balance: (unavailable)";
-            }
-
-            // Record count of the view currently on screen, if it exposes one.
-            int recordCount = (_currentView as IRecordCountSource)?.RecordCount ?? -1;
-            lblRecordCount.Text = recordCount >= 0 ? $"Records: {recordCount}" : "Records: —";
-
-            lblLastAction.Text = $"Last action: {DateTime.Now:dd-MMM-yyyy HH:mm:ss}";
         }
 
         /// <summary>
