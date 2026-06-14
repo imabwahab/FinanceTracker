@@ -51,7 +51,7 @@ namespace App.WindowsForm.Views
         public void RefreshCharts()
         {
             BuildAmountByCategoryPie();
-            BuildOpeningBalanceByAccountColumn();
+            BuildBalancesByAccountColumn();
         }
 
         /// <summary>
@@ -99,24 +99,37 @@ namespace App.WindowsForm.Views
         }
 
         /// <summary>
-        /// Column chart: OpeningBalance per Account
+        /// Column chart: Opening vs. Current (cleared) balance per Account.
+        /// The two series render as grouped columns so the change since opening
+        /// is visible at a glance. Current balance comes from the service's
+        /// server-side computation (OpeningBalance + income − expense, Cleared only).
         /// </summary>
-        private void BuildOpeningBalanceByAccountColumn()
+        private void BuildBalancesByAccountColumn()
         {
             try
             {
                 var accounts = _accountService.GetAll();
+                var currentBalances = _accountService.GetCurrentBalances();
 
-                var balances = accounts.Select(a => a.OpeningBalance).ToList();
                 var labels = accounts.Select(a => a.Name).ToArray();
+                var opening = accounts.Select(a => a.OpeningBalance).ToList();
+                var current = accounts
+                    .Select(a => currentBalances.TryGetValue(a.Id, out var bal) ? bal : a.OpeningBalance)
+                    .ToList();
 
-                var columnSeries = new ColumnSeries<decimal>
+                var openingSeries = new ColumnSeries<decimal>
                 {
                     Name = "Opening Balance",
-                    Values = balances
+                    Values = opening
                 };
 
-                cartesianChart.Series = new ISeries[] { columnSeries };
+                var currentSeries = new ColumnSeries<decimal>
+                {
+                    Name = "Current Balance",
+                    Values = current
+                };
+
+                cartesianChart.Series = new ISeries[] { openingSeries, currentSeries };
 
                 cartesianChart.XAxes = new[]
                 {

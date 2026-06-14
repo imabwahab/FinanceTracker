@@ -73,6 +73,7 @@ namespace App.WindowsForm.Views
             dgvCategories.AllowUserToAddRows = false;
             dgvCategories.AllowUserToDeleteRows = false;
             dgvCategories.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvCategories.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvCategories.Dock = DockStyle.Fill;
             dgvCategories.Location = new Point(0, 25);
             dgvCategories.Name = "dgvCategories";

@@ -139,7 +139,6 @@ FinanceTracker/
 │   ├── App.config                   # Connection string lives here
 │   ├── Program.cs                   # Entry point — runs MainForm
 │   ├── MainForm.cs / .Designer.cs   # Shell: sidebar + content panel
-│   ├── ChartSmokeTestForm.cs        # DEBUG-only chart sanity check
 │   ├── Assets/                      # Sidebar icons (png)
 │   ├── Properties/                  # Resources
 │   ├── Views/                       # Full-page UserControls
@@ -265,7 +264,6 @@ Key behaviors:
 - **Active-tab styling** — `SelectTab` highlights the current button (blue background, bold font, left border) and resets the others.
 - **Cross-view refresh** — after any view mutates data, it calls `(ParentForm as MainForm)?.RefreshDashboardIfCached()`, which re-runs the dashboard charts *if* the dashboard has been opened.
 - **Resource cleanup** — `OnFormClosed` disposes all cached views and cached fonts to avoid leaks.
-- **DEBUG-only chart smoke test** — under a `#if DEBUG` block, an extra "🧪 Chart Test" button opens `ChartSmokeTestForm` for quick chart sanity checks. It is not compiled into Release builds.
 
 ### Views (`Views/`)
 
@@ -395,7 +393,6 @@ A typical "add a transaction" flow ties all the layers together:
 - **Mode-driven forms.** One dialog per entity covers Add/Edit/View, reducing duplication.
 - **Cache-aside views.** Views are built once and reused, preserving UI state and avoiding rebuild cost.
 - **Fail-fast configuration.** A missing connection string throws immediately with guidance.
-- **DEBUG-only tooling.** The chart smoke-test button is compiled out of Release builds via `#if DEBUG`.
 
 ---
 

@@ -89,7 +89,11 @@ namespace App.WindowsForm
             InitializeFonts();
             LoadButtonIcons();
             SetupSidebarTabs();
-            SelectTab(btnDashboard);
+
+            // Open the Dashboard on startup. SelectTab alone only highlights the
+            // button; BtnDashboard_Click also calls ShowView so the charts render
+            // immediately instead of only after the user switches tabs.
+            BtnDashboard_Click(btnDashboard, EventArgs.Empty);
         }
 
         /// <summary>
@@ -208,28 +212,6 @@ namespace App.WindowsForm
                     }
                 };
             }
-
-#if DEBUG
-            // Add SmokeTest button (development/debug only - not shipped to production)
-            var btnSmokeTest = new Button
-            {
-                Text = "🧪 Chart Test",
-                Dock = DockStyle.Bottom,
-                Height = 40,
-                BackColor = Color.FromArgb(240, 240, 240),
-                ForeColor = Color.FromArgb(33, 33, 33),
-                Font = _regularFont,
-                FlatStyle = FlatStyle.Flat
-            };
-
-            btnSmokeTest.Click += (s, e) =>
-            {
-                var testForm = new ChartSmokeTestForm();
-                testForm.Show();
-            };
-
-            pnlSide.Controls.Add(btnSmokeTest);
-#endif
         }
 
         private void SelectTab(Button? selectedButton)
@@ -277,6 +259,19 @@ namespace App.WindowsForm
             if (_views.TryGetValue(typeof(DashboardView), out var view) && view is DashboardView dash)
             {
                 dash.RefreshCharts();
+            }
+        }
+
+        /// <summary>
+        /// Called from views after they mutate transactions.
+        /// Refreshes the Accounts view (current balances) if it's been opened,
+        /// so a transaction added elsewhere is reflected when the user returns.
+        /// </summary>
+        public void RefreshAccountsIfCached()
+        {
+            if (_views.TryGetValue(typeof(AccountsView), out var view) && view is AccountsView accounts)
+            {
+                accounts.ReloadData();
             }
         }
 
