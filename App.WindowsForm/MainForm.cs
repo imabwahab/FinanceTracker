@@ -89,7 +89,11 @@ namespace App.WindowsForm
             InitializeFonts();
             LoadButtonIcons();
             SetupSidebarTabs();
-            SelectTab(btnDashboard);
+
+            // Open the Dashboard on startup. SelectTab alone only highlights the
+            // button; BtnDashboard_Click also calls ShowView so the charts render
+            // immediately instead of only after the user switches tabs.
+            BtnDashboard_Click(btnDashboard, EventArgs.Empty);
         }
 
         /// <summary>
