@@ -7,18 +7,27 @@ namespace App.WindowsForm.Views
 {
     public partial class AccountsView : UserControl
     {
+        private const string CurrentBalanceColumn = "CurrentBalance";
+
         private readonly IAccountService _service;
         private bool _loaded = false;
+
+        // Current (cleared) balance per account Id, refreshed alongside the grid.
+        private Dictionary<string, decimal> _currentBalances = new Dictionary<string, decimal>();
 
         public AccountsView(IAccountService service)
         {
             ArgumentNullException.ThrowIfNull(service);
-            
+
             _service = service;
             InitializeComponent();
 
             // Bind the DataGridView to the BindingSource
             dgvAccounts.DataSource = bindingSource1;
+
+            // Auto-generated columns are rebuilt on every bind, so (re)add and
+            // fill the computed "Current Balance" column once binding completes.
+            dgvAccounts.DataBindingComplete += (s, e) => PopulateCurrentBalanceColumn();
 
             // Wire toolbar buttons
             btnAdd.Click += BtnAdd_Click;
@@ -39,17 +48,61 @@ namespace App.WindowsForm.Views
         }
 
         /// <summary>
+        /// Public hook so MainForm can refresh balances after a transaction
+        /// changes them in another view.
+        /// </summary>
+        public void ReloadData() => RefreshGrid();
+
+        /// <summary>
         /// Refresh the DataGridView by fetching all accounts from the service.
+        /// Balances are fetched first so they're ready when binding completes.
         /// </summary>
         private void RefreshGrid()
         {
             try
             {
+                _currentBalances = _service.GetCurrentBalances();
                 bindingSource1.DataSource = _service.GetAll();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading accounts: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Ensure the computed "Current Balance" column exists (it's unbound, so
+        /// auto-column generation drops it on each rebind) and fill each row from
+        /// the precomputed balances, matched by the row's account Id.
+        /// </summary>
+        private void PopulateCurrentBalanceColumn()
+        {
+            if (!dgvAccounts.Columns.Contains(CurrentBalanceColumn))
+            {
+                var column = new DataGridViewTextBoxColumn
+                {
+                    Name = CurrentBalanceColumn,
+                    HeaderText = "Current Balance",
+                    ReadOnly = true
+                };
+                column.DefaultCellStyle.Format = "N2";
+                column.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                dgvAccounts.Columns.Add(column);
+
+                // Place it right after Opening Balance for an at-a-glance comparison.
+                if (dgvAccounts.Columns.Contains("OpeningBalance"))
+                {
+                    column.DisplayIndex = dgvAccounts.Columns["OpeningBalance"].DisplayIndex + 1;
+                }
+            }
+
+            foreach (DataGridViewRow row in dgvAccounts.Rows)
+            {
+                if (row.DataBoundItem is Account account &&
+                    _currentBalances.TryGetValue(account.Id, out var balance))
+                {
+                    row.Cells[CurrentBalanceColumn].Value = balance;
+                }
             }
         }
 

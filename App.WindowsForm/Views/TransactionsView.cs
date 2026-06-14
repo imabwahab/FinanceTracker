@@ -246,6 +246,7 @@ namespace App.WindowsForm.Views
                         RefreshGrid();
                         MessageBox.Show("Transaction added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         (ParentForm as MainForm)?.RefreshDashboardIfCached();
+                        (ParentForm as MainForm)?.RefreshAccountsIfCached();
                     }
                 }
             }
@@ -279,6 +280,7 @@ namespace App.WindowsForm.Views
                             RefreshGrid();
                             MessageBox.Show("Transaction updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             (ParentForm as MainForm)?.RefreshDashboardIfCached();
+                            (ParentForm as MainForm)?.RefreshAccountsIfCached();
                         }
                         else
                         {
@@ -345,6 +347,7 @@ namespace App.WindowsForm.Views
                     RefreshGrid();
                     MessageBox.Show("Transaction deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     (ParentForm as MainForm)?.RefreshDashboardIfCached();
+                    (ParentForm as MainForm)?.RefreshAccountsIfCached();
                 }
             }
             catch (Exception ex)

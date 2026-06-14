@@ -51,6 +51,50 @@ namespace App.Core.Services
         }
 
         // -------------------------------------------------------------
+        // GetCurrentBalances: current (cleared) balance per account.
+        //
+        // The sign of each transaction comes from its category's type, not from
+        // the transaction itself (Amount is always positive), so we LEFT JOIN
+        // through Categories. Only 'Cleared' transactions count; the join keeps
+        // accounts that have no transactions (they just return OpeningBalance).
+        // Transactions whose category is missing (no FK is enforced) contribute 0.
+        // -------------------------------------------------------------
+        public Dictionary<string, decimal> GetCurrentBalances()
+        {
+            Dictionary<string, decimal> balances = new Dictionary<string, decimal>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand(
+                    "SELECT a.Id, " +
+                    "       a.OpeningBalance + ISNULL(SUM(" +
+                    "           CASE c.CategoryType " +
+                    "               WHEN 'Income'  THEN  t.Amount " +
+                    "               WHEN 'Expense' THEN -t.Amount " +
+                    "               ELSE 0 " +
+                    "           END), 0) AS CurrentBalance " +
+                    "FROM Accounts a " +
+                    "LEFT JOIN Transactions t ON t.AccountId = a.Id AND t.Status = 'Cleared' " +
+                    "LEFT JOIN Categories c ON c.Id = t.CategoryId " +
+                    "GROUP BY a.Id, a.OpeningBalance", conn);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string id = reader["Id"]?.ToString()
+                            ?? throw new InvalidOperationException("Id cannot be null");
+                        balances[id] = Convert.ToDecimal(reader["CurrentBalance"]);
+                    }
+                }
+            }
+
+            return balances;
+        }
+
+        // -------------------------------------------------------------
         // GetById: returns one account, or null if not found.
         // -------------------------------------------------------------
         public Account? GetById(string id)

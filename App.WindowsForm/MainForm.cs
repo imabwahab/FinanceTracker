@@ -281,6 +281,19 @@ namespace App.WindowsForm
         }
 
         /// <summary>
+        /// Called from views after they mutate transactions.
+        /// Refreshes the Accounts view (current balances) if it's been opened,
+        /// so a transaction added elsewhere is reflected when the user returns.
+        /// </summary>
+        public void RefreshAccountsIfCached()
+        {
+            if (_views.TryGetValue(typeof(AccountsView), out var view) && view is AccountsView accounts)
+            {
+                accounts.ReloadData();
+            }
+        }
+
+        /// <summary>
         /// Display Accounts view. Factory creates it once; subsequent clicks reuse it.
         /// State (filters, scroll, selection) is preserved across clicks.
         /// </summary>
