@@ -93,6 +93,7 @@
             dgvAccounts.AllowUserToAddRows = false;
             dgvAccounts.AllowUserToDeleteRows = false;
             dgvAccounts.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvAccounts.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvAccounts.Dock = DockStyle.Fill;
             dgvAccounts.Location = new Point(0, 25);
             dgvAccounts.Name = "dgvAccounts";

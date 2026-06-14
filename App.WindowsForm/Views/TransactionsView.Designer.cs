@@ -235,6 +235,7 @@ namespace App.WindowsForm.Views
             dgvTransactions.AllowUserToAddRows = false;
             dgvTransactions.AllowUserToDeleteRows = false;
             dgvTransactions.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvTransactions.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvTransactions.Dock = DockStyle.Fill;
             dgvTransactions.Location = new Point(0, 85);
             dgvTransactions.Name = "dgvTransactions";
